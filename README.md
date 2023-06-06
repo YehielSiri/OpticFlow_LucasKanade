@@ -1,7 +1,7 @@
 # Image-Pyramids-and-Optic-Flow
 Implementation of Lucas Kanade algorithm, Image Alignment and Warping, Gaussian and Laplacian Pyramids.
 
-All functions accept both gray-scale and color images.
+All functions accept both gray-scale and color images as an input.
 
 -----
 
@@ -15,6 +15,8 @@ All functions accept both gray-scale and color images.
 -----
 
 <h2>Optical Flow By Lucas Kanade</h2>
+Accepting both gray-scale and color images as an input, but working on a gray-scale copy.
+Calculate the Optical Flow by the Lucas Kanade algorithm which is optimized by the Iterative Algorithm.
 
 <div align="center">
 

@@ -29,7 +29,7 @@ def myID() -> np.int32:
 
 
 def opticalFlow(im1: np.ndarray, im2: np.ndarray, step_size=10,
-                win_size=5) -> (np.ndarray, np.ndarray):
+                win_size=5) -> tuple[np.ndarray, np.ndarray]:
     """
     Given two images, returns the Translation from im1 to im2
     :param im1: Image 1
@@ -38,7 +38,40 @@ def opticalFlow(im1: np.ndarray, im2: np.ndarray, step_size=10,
     :param win_size: The optical flow window size (odd number)
     :return: Original points [[x,y]...], [[dU,dV]...] for each points
     """
-    pass
+    # Generate a gray-scale copy
+    img1, img2 = im1, im2
+    if len(im1.shape) == 3:
+        img1 = cv2.cvtColor(im1, cv2.COLOR_RGB2GRAY)
+    if len(im2.shape) == 3:
+        img2 = cv2.cvtColor(im2, cv2.COLOR_RGB2GRAY)
+    
+    # Optimize LK value by the Iterative Algorithm
+    #   1. Calculate x, y gradiante
+    I_x, I_y = __get_directions(img1)
+    #   2. Calculate temporal gradient
+    I_t = np.subtract(img1, img2)
+    
+    height, width = img2.shape
+    half_window_size = win_size // 2
+    window_pixels_num = win_size ** 2
+    u_v_list, y_x_list = [], []
+
+    start = int(max(step_size, win_size) / 2)
+    max_iterations_rows = height - int(max(step_size, win_size) / 2)
+    max_iterations_cols = width - int(max(step_size, win_size) / 2)
+    for i in range(start ,max_iterations_rows ,step_size):
+        for j in range(start, max_iterations_cols, step_size):
+            x_win = I_x[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
+            y_win = I_y[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
+            A = np.hstack((x_win.reshape(window_pixels_num, 1), y_win.reshape(window_pixels_num, 1)))
+            if not __acceptable_eigenvalues(A):
+                continue
+            t_win = I_t[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
+            b = (-1) * t_win.reshape(window_pixels_num, 1)
+            y_x_list.append((j, i))
+            u_v = np.dot(np.linalg.pinv(A), b)
+            u_v_list.append(u_v)
+    return np.array(y_x_list).reshape(-1, 2), np.array(u_v_list).reshape(-1, 2)
 
 
 def opticalFlowPyrLK(img1: np.ndarray, img2: np.ndarray, k: int,
@@ -143,7 +176,7 @@ def laplaceianExpand(lap_pyr: List[np.ndarray]) -> np.ndarray:
 
 
 def pyrBlend(img_1: np.ndarray, img_2: np.ndarray,
-             mask: np.ndarray, levels: int) -> (np.ndarray, np.ndarray):
+             mask: np.ndarray, levels: int) -> tuple[np.ndarray, np.ndarray]:
     """
     Blends two images using PyramidBlend method
     :param img_1: Image 1
