@@ -162,14 +162,14 @@ def main():
 
     img_path = 'input/boxMan.jpg'
     lkDemo(img_path)
-    hierarchicalkDemo(img_path)
-    compareLK(img_path)
+    # hierarchicalkDemo(img_path)
+    # compareLK(img_path)
 
-    imageWarpingDemo(img_path)
+    # imageWarpingDemo(img_path)
 
-    pyrGaussianDemo('input/pyr_bit.jpg')
-    pyrLaplacianDemo('input/pyr_bit.jpg')
-    blendDemo()
+    # pyrGaussianDemo('input/pyr_bit.jpg')
+    # pyrLaplacianDemo('input/pyr_bit.jpg')
+    # blendDemo()
 
 
 if __name__ == '__main__':

@@ -36,6 +36,9 @@ def __gradient(img: np.ndarray):
     I_y = cv2.filter2D(img, -1, GRADIENT.T)
     return I_x, I_y
 def is_window_valid(eigen_value: np.ndarray) -> bool:
+    """
+    Checking if the eigenvalues is valid.
+    """
     lamda1 = np.max(eigen_value)
     lamda2 = np.min(eigen_value)
     if lamda2 <= 1 or lamda1 / lamda2 >= 100:
