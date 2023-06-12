@@ -473,13 +473,6 @@ def laplaceianReduce(img: np.ndarray, levels: int = 4) -> List[np.ndarray]:
     :param levels: Pyramid depth
     :return: Laplacian Pyramid (list of images)
     """
-def laplaceianReduce(img: np.ndarray, levels: int = 4) -> List[np.ndarray]:
-    """
-    Creates a Laplacian pyramid
-    :param img: Original image
-    :param levels: Pyramid depth
-    :return: Laplacian Pyramid (list of images)
-    """
     pyr = []
     gaus_pyr = gaussianPyr(img, levels)
     for level in range(levels - 1):
@@ -513,5 +506,10 @@ def pyrBlend(img_1: np.ndarray, img_2: np.ndarray,
     :param levels: Pyramid depth
     :return: (Naive blend, Blended Image)
     """
-    pass
-
+    lap_pyr1 = laplaceianReduce(img_1, levels)
+    lap_pyr2 = laplaceianReduce(img_2, levels)
+    gauss_pyr = gaussianPyr(mask, levels)
+    lap_pyr3 = [np.array(gauss_pyr[i] * lap_pyr1[i] + (1 - gauss_pyr[i]) * lap_pyr2[i]) for i in range(levels)]
+    naive = np.array([[(img_2[j][i] if (mask[j][i].any() < 0.5) else img_1[j][i])
+                       for i in range(mask.shape[1])] for j in range(mask.shape[0])])
+    return naive, laplaceianExpand(lap_pyr3)
