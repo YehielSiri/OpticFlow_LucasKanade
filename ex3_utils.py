@@ -275,6 +275,32 @@ def to_shape(a, shape):
 # ------------------------ Image Alignment & Warping ------------------------
 # ---------------------------------------------------------------------------
 
+# ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   Auxolarity functions   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^
+def maxCorrelationPoint(im1: np.ndarray, im2: np.ndarray):
+    """
+    https://stackoverflow.com/questions/58181398/how-to-find-correlation-between-two-images-using-numpy
+    """
+    # Get rid of the averages, otherwise the results are not good
+    rows, cols = max(im1.shape[0], im2.shape[0]), max(im1.shape[1], im2.shape[1])
+    im1_gray = im1 - np.mean(im1)
+    im2_gray = im2 - np.mean(im2)
+    im1_gray = np.pad(im1_gray, [(0, max(0, rows - im1.shape[0])),
+                                 (0, max(0, cols - im1.shape[1]))], mode='constant')
+    im2_gray = np.pad(im2_gray, [(0, max(0, rows - im2.shape[0])),
+                                 (0, max(0, cols - im2.shape[1]))], mode='constant')
+    # Calculate the correlation image (without scipy)
+    pad = np.max(im1_gray.shape) // 2
+    fft1 = np.fft.fft2(np.pad(im1_gray, pad))
+    fft2 = np.fft.fft2(np.pad(im2_gray, pad))
+    prod = fft1 * fft2.conj()
+    result_full = np.fft.fftshift(np.fft.ifft2(prod))
+    corr = result_full.real[1 + pad:-pad + 1, 1 + pad:-pad + 1]
+    max_point_value = np.argmax(corr)
+    y, x = np.unravel_index(max_point_value, corr.shape)
+    return y, x, np.max(corr)
+
+# ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^
+
 
 def findTranslationLK(im1: np.ndarray, im2: np.ndarray) -> np.ndarray:
     """
