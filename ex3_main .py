@@ -3,7 +3,7 @@
          ##.....::. ##::'##:::::.....##:::
          ##::::::::. ##'##:::::::::::##:::
          ######:::::. ###::::. ########:::
-         ##...:::::: ## ##:::::......##::::
+         ##...:::::: ## ##:::::......##:::
          ##:::::::: ##:. ##::::::::::##:::
          ########: ##:::. ##:. ########:::
         ........::..:::::..:::.........:::
@@ -17,6 +17,15 @@ from ex3_utils import *
 import time
 
 
+TRANSLATION_SMALL_STEP = np.array([[1, 0, -.2],
+                                   [0, 1, -.1],
+                                   [0, 0,   1]], dtype=np.float32)
+TRANSLATION_BIG_STEP = np.array([[1, 0, -9],
+                                 [0, 1, -7],
+                                 [0, 0,  1]], dtype=np.float32)
+
+
+
 # ---------------------------------------------------------------------------
 # ------------------------ Lucas Kanade optical flow ------------------------
 # ---------------------------------------------------------------------------
@@ -27,12 +36,11 @@ def lkDemo(img_path):
 
     img_1 = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY)
     img_1 = cv2.resize(img_1, (0, 0), fx=.5, fy=0.5)
-    t = np.array([[1, 0, -.2],
-                  [0, 1, -.1],
-                  [0, 0, 1]], dtype=np.float)
-    img_2 = cv2.warpPerspective(img_1, t, img_1.shape[::-1])
+    img_2 = cv2.warpPerspective(img_1, TRANSLATION_SMALL_STEP, img_1.shape[::-1])
+
+    # calc LK output
     st = time.time()
-    pts, uv = opticalFlow(img_1.astype(np.float), img_2.astype(np.float), step_size=20, win_size=5)
+    pts, uv = opticalFlow(img_1.astype(np.float32), img_2.astype(np.float32), step_size=20, win_size=5)
     et = time.time()
 
     print("Time: {:.4f}".format(et - st))
@@ -49,8 +57,31 @@ def hierarchicalkDemo(img_path):
     :return:
     """
     print("Hierarchical LK Demo")
+    # For two images as input:
+    # img_path1 = 'input/'
+    # img_path2 = 'input/'
+    # img_1 = cv2.cvtColor(cv2.imread(img_path1), cv2.COLOR_BGR2GRAY)
+    # img_2 = cv2.cvtColor(cv2.imread(img_path2), cv2.COLOR_BGR2GRAY)
+    
+    # For one single image as input (making translation)
+    img_1 = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY)
+    img_1 = cv2.resize(img_1, (0, 0), fx=.5, fy=0.5)
+    img_2 = cv2.warpPerspective(img_1, TRANSLATION_BIG_STEP, img_1.shape[::-1])
 
-    pass
+    st = time.time()
+    STEP_SIZE, WIN_SIZE = 20, 9
+
+    # calc hierarchical LK output
+    UV = opticalFlowPyrLK(img_1.astype(float), img_2.astype(float), 6, stepSize=STEP_SIZE, winSize=WIN_SIZE)
+    U, V = np.array(UV[:, :, 0]), np.array(UV[:, :, 1])
+    pts, uv = ListedUV(U, V, stepSize=STEP_SIZE, winSize=WIN_SIZE)
+
+    # Print results
+    et = time.time()
+    print("Time: {:.4f}".format(et - st))
+
+    # Plot hierarchical LK Output
+    displayOpticalFlow(img_2, pts, uv)
 
 
 def compareLK(img_path):
@@ -61,8 +92,36 @@ def compareLK(img_path):
     :return:
     """
     print("Compare LK & Hierarchical LK")
+    print("Compare LK Demo")
+    # For two images as input:
+    # img_path1 = 'input/'
+    # img_path2 = 'input/'
+    # img_1 = cv2.cvtColor(cv2.imread(img_path1), cv2.COLOR_BGR2GRAY)
+    # img_2 = cv2.cvtColor(cv2.imread(img_path2), cv2.COLOR_BGR2GRAY)
+    
+    # For one single image as input (making translation)
+    img_1 = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY)
+    img_1 = cv2.resize(img_1, (0, 0), fx=.5, fy=0.5)
+    img_2 = cv2.warpPerspective(img_1, TRANSLATION_BIG_STEP, img_1.shape[::-1])
 
-    pass
+    STEP_SIZE, WIN_SIZE = 20, 9
+    # Calc LK output
+    pts, uv = opticalFlow(img_1.astype(float), img_2.astype(float), step_size=STEP_SIZE, win_size=WIN_SIZE)
+    # calc hierarchical LK output
+    UV = opticalFlowPyrLK(img_1.astype(float), img_2.astype(float), 6, stepSize=STEP_SIZE, winSize=WIN_SIZE)
+    U, V = np.array(UV[:, :, 0]), np.array(UV[:, :, 1])
+    ptsi, uvi = ListedUV(U, V, stepSize=STEP_SIZE, winSize=WIN_SIZE)
+
+    # Print results
+    # Plot both LK and hierarchical LK Output
+    f, ax = plt.subplots(1, 2)
+    ax[0].set_title('Optical Flow')
+    ax[1].set_title('Iterative Optical Flow')
+    ax[0].imshow(img_2, cmap='gray')
+    ax[0].quiver(pts[:, 0], pts[:, 1], uv[:, 0], uv[:, 1], color='r')
+    ax[1].imshow(img_2, cmap='gray')
+    ax[1].quiver(ptsi[:, 0], ptsi[:, 1], uvi[:, 0], uvi[:, 1], color='r')
+    plt.show()
 
 
 def displayOpticalFlow(img: np.ndarray, pts: np.ndarray, uvs: np.ndarray):
@@ -162,7 +221,7 @@ def main():
 
     img_path = 'input/boxMan.jpg'
     lkDemo(img_path)
-    # hierarchicalkDemo(img_path)
+    hierarchicalkDemo(img_path)
     # compareLK(img_path)
 
     # imageWarpingDemo(img_path)
