@@ -78,104 +78,104 @@ def __gauss_expand(img: np.ndarray, target_shape: np.shape):
             gaus_expended_prev_level[j, i] = img[j // 2][i // 2]
     gaus_expended_prev_level = np.clip(__blur_image(gaus_expended_prev_level, 5) * 4, 0, 1)
     return gaus_expended_prev_level
-def __optical_Flow(im1: np.ndarray, im2: np.ndarray, step_size: int, win_size: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """
-        This method identical to 'opticalFlow' above but adapted to 'opticalFlowPyrLK'
-    """
-    img1, img2 = im1, im2
-    if len(im1.shape) == 3:
-        img1 = cv2.cvtColor(im1, cv2.COLOR_RGB2GRAY)
-    if len(im2.shape) == 3:
-        img2 = cv2.cvtColor(im2, cv2.COLOR_RGB2GRAY)
-    I_x, I_y = __gradient(img1)
-    I_t = np.subtract(img1, img2)
-    height, width = img2.shape
-    half_win_size, num_of_win_pixels = win_size // 2, win_size ** 2
-    u_v_list, y_x_list = [], []
-    u = np.zeros(img1.shape)
-    v = np.zeros(img1.shape)
-    for i in range(int(max(step_size, win_size) / 2), height - int(max(step_size, win_size) / 2), step_size):
-        for j in range(int(max(step_size, win_size) / 2), width - int(max(step_size, win_size) / 2), step_size):
-            x_win = I_x[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
-            y_win = I_y[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
-            A = np.hstack((x_win.reshape(num_of_win_pixels, 1), y_win.reshape(num_of_win_pixels, 1)))
-            y_x_list.append((j, i))
-            At_mult_A = np.dot(np.transpose(A), A)
-            #   * Eigenvalues checking
-            if not __eigenvalues_checking(At_mult_A):
-            # if not __acceptable_eigenvalues(A):
-                u_v_list.append((0, 0))
-                continue
-            t_win = I_t[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
-            b = (-1) * t_win.reshape(num_of_win_pixels, 1)
-            u_v = np.dot(np.linalg.pinv(A), b)
-            u_v_list.append(u_v)
-            u[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1] += u_v[0]
-            v[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1] += u_v[1]
-    return np.array(y_x_list).reshape(-1, 2), np.array(u_v_list).reshape(-1, 2), u, v
-
-# def __optical_Flow(im1: np.ndarray, im2: np.ndarray, step_size: int,
-#                 win_size: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+# def __optical_Flow(im1: np.ndarray, im2: np.ndarray, step_size: int, win_size: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 #     """
-#     Given two images, returns the Translation from im1 to im2
-#     :param im1: Image 1
-#     :param im2: Image 2
-#     :param step_size: The image sample size
-#     :param win_size: The optical flow window size (odd number)
-#     :return: Original points [[x,y]...], [[dU,dV]...] for each points
+#         This method identical to 'opticalFlow' above but adapted to 'opticalFlowPyrLK'
 #     """
-#     # Generate a gray-scale copy
 #     img1, img2 = im1, im2
 #     if len(im1.shape) == 3:
 #         img1 = cv2.cvtColor(im1, cv2.COLOR_RGB2GRAY)
 #     if len(im2.shape) == 3:
 #         img2 = cv2.cvtColor(im2, cv2.COLOR_RGB2GRAY)
-    
-#     # Optimize LK value by the Iterative Algorithm
-#     #   1. Calculate x, y gradiante
 #     I_x, I_y = __gradient(img1)
-#     #   2. Calculate temporal gradient
 #     I_t = np.subtract(img1, img2)
-    
 #     height, width = img2.shape
-#     half_window_size = win_size // 2
-#     window_pixels_num = win_size ** 2
+#     half_win_size, num_of_win_pixels = win_size // 2, win_size ** 2
 #     u_v_list, y_x_list = [], []
 #     u = np.zeros(img1.shape)
 #     v = np.zeros(img1.shape)
-
-
-#     start = int(max(step_size, win_size) / 2)
-#     max_iterations_rows = height - int(max(step_size, win_size) / 2)
-#     max_iterations_cols = width - int(max(step_size, win_size) / 2)
-#     for i in range(start ,max_iterations_rows ,step_size):
-#         for j in range(start, max_iterations_cols, step_size):
-#             """
-#             For solving the:               # T   #   -1  # T  #
-#                                 u         ###   ###     ###   ###
-#                                 v   =   (#   # #   #)  #   #  ###
-#                 to every pixel.
-#             """
-#             #   3. Extract local windows
-#             x_window = I_x[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
-#             y_window = I_y[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
-#             t_window = I_t[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
-#             b = (-1) * t_window.reshape(window_pixels_num, 1)
-#             #   4. Compute A matrix of local windows
-#             A = np.hstack((x_window.reshape(window_pixels_num, 1), y_window.reshape(window_pixels_num, 1)))
+#     for i in range(int(max(step_size, win_size) / 2), height - int(max(step_size, win_size) / 2), step_size):
+#         for j in range(int(max(step_size, win_size) / 2), width - int(max(step_size, win_size) / 2), step_size):
+#             x_win = I_x[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
+#             y_win = I_y[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
+#             A = np.hstack((x_win.reshape(num_of_win_pixels, 1), y_win.reshape(num_of_win_pixels, 1)))
+#             y_x_list.append((j, i))
 #             At_mult_A = np.dot(np.transpose(A), A)
 #             #   * Eigenvalues checking
 #             if not __eigenvalues_checking(At_mult_A):
+#             # if not __acceptable_eigenvalues(A):
+#                 u_v_list.append((0, 0))
 #                 continue
-#             #   5. Solve the formula for the local windows to estimate optical flow (u, v)
-#             At_mult_b = np.dot(np.transpose(A), b)
-#             u_v = np.linalg.inv(At_mult_A) @ At_mult_b
-#             #   6. Update U(x, y) and V(x, y) with the estimated optical flow (u, v)
-#             y_x_list.append((j, i))
+#             t_win = I_t[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
+#             b = (-1) * t_win.reshape(num_of_win_pixels, 1)
+#             u_v = np.dot(np.linalg.pinv(A), b)
 #             u_v_list.append(u_v)
-#             u[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1] += u_v[0]
-#             v[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1] += u_v[1]
+#             u[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1] += u_v[0]
+#             v[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1] += u_v[1]
 #     return np.array(y_x_list).reshape(-1, 2), np.array(u_v_list).reshape(-1, 2), u, v
+
+def __optical_Flow(im1: np.ndarray, im2: np.ndarray, step_size: int,
+                win_size: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Given two images, returns the Translation from im1 to im2
+    :param im1: Image 1
+    :param im2: Image 2
+    :param step_size: The image sample size
+    :param win_size: The optical flow window size (odd number)
+    :return: Original points [[x,y]...], [[dU,dV]...] for each points
+    """
+    # Generate a gray-scale copy
+    img1, img2 = im1, im2
+    if len(im1.shape) == 3:
+        img1 = cv2.cvtColor(im1, cv2.COLOR_RGB2GRAY)
+    if len(im2.shape) == 3:
+        img2 = cv2.cvtColor(im2, cv2.COLOR_RGB2GRAY)
+    
+    # Optimize LK value by the Iterative Algorithm
+    #   1. Calculate x, y gradiante
+    I_x, I_y = __gradient(img1)
+    #   2. Calculate temporal gradient
+    I_t = np.subtract(img1, img2)
+    
+    height, width = img2.shape
+    half_window_size = win_size // 2
+    window_pixels_num = win_size ** 2
+    u_v_list, y_x_list = [], []
+    u = np.zeros(img1.shape)
+    v = np.zeros(img1.shape)
+
+
+    start = int(max(step_size, win_size) / 2)
+    max_iterations_rows = height - int(max(step_size, win_size) / 2)
+    max_iterations_cols = width - int(max(step_size, win_size) / 2)
+    for i in range(start ,max_iterations_rows ,step_size):
+        for j in range(start, max_iterations_cols, step_size):
+            """
+            For solving the:               # T   #   -1  # T  #
+                                u         ###   ###     ###   ###
+                                v   =   (#   # #   #)  #   #  ###
+                to every pixel.
+            """
+            #   3. Extract local windows
+            x_window = I_x[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
+            y_window = I_y[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
+            t_window = I_t[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
+            b = (-1) * t_window.reshape(window_pixels_num, 1)
+            #   4. Compute A matrix of local windows
+            A = np.hstack((x_window.reshape(window_pixels_num, 1), y_window.reshape(window_pixels_num, 1)))
+            At_mult_A = np.dot(np.transpose(A), A)
+            #   * Eigenvalues checking
+            if not __eigenvalues_checking(At_mult_A):
+                continue
+            #   5. Solve the formula for the local windows to estimate optical flow (u, v)
+            At_mult_b = np.dot(np.transpose(A), b)
+            u_v = np.linalg.inv(At_mult_A) @ At_mult_b
+            #   6. Update U(x, y) and V(x, y) with the estimated optical flow (u, v)
+            y_x_list.append((j, i))
+            u_v_list.append(u_v)
+            u[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1] += u_v[0]
+            v[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1] += u_v[1]
+    return np.array(y_x_list).reshape(-1, 2), np.array(u_v_list).reshape(-1, 2), u, v
 
 # ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^
 
