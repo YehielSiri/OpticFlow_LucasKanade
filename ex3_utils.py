@@ -350,7 +350,19 @@ def findRigidLK(im1: np.ndarray, im2: np.ndarray) -> np.ndarray:
     :param im2: image 1 after Rigid.
     :return: Rigid matrix by LK.
     """
-    pass
+    rows, cols = im1.shape
+    theta = findRotation(im1, im2)
+    rotate_matrix = np.float32([[np.cos(theta), -np.sin(theta), 0],
+                                [np.sin(theta), np.cos(theta), 0]])
+    rotated = cv2.warpAffine(im1, rotate_matrix, (cols, rows))
+    # Calc U, V using LK iterative (pyramids)
+    translation_mat = findTranslationLK(rotated, im2)
+    u, v = translation_mat[0, 2], translation_mat[1, 2]
+    # Result as warping matrix
+    warping_mat = np.array([[np.cos(theta), -np.sin(theta), u],
+                            [np.sin(theta), np.cos(theta), v],
+                            [0, 0, 1]])
+    return warping_mat
 
 
 def findTranslationCorr(im1: np.ndarray, im2: np.ndarray) -> np.ndarray:
