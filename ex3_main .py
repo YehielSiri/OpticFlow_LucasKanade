@@ -340,8 +340,8 @@ def main():
     # findRigidCorrDemo(img_path1)
     # imageWarpingDemo(img_path1)
 
-    pyrGaussianDemo('input/pyr_bit.jpg')
-    pyrLaplacianDemo('input/pyr_bit.jpg')
+    # pyrGaussianDemo('input/pyr_bit.jpg')
+    # pyrLaplacianDemo('input/pyr_bit.jpg')
     blendDemo()
 
 
