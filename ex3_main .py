@@ -102,7 +102,7 @@ def compareLK(img_path):
     # For one single image as input (making translation)
     img_1 = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY)
     img_1 = cv2.resize(img_1, (0, 0), fx=.5, fy=0.5)
-    img_2 = cv2.warpPerspective(img_1, TRANSLATION_BIG_STEP, img_1.shape[::-1])
+    img_2 = cv2.warpPerspective(img_1, TRANSLATION_SMALL_STEP, img_1.shape[::-1])
 
     STEP_SIZE, WIN_SIZE = 20, 9
     # Calc LK output

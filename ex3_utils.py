@@ -282,7 +282,25 @@ def findTranslationLK(im1: np.ndarray, im2: np.ndarray) -> np.ndarray:
     :param im2: image 1 after Translation.
     :return: Translation matrix by LK.
     """
-    pass
+    # Calc U, V Matrices using LK iterative (pyramids)
+    step_size, win_size = 20, 9
+    UV = opticalFlowPyrLK(im1.astype(float), im2.astype(float), 6, stepSize=step_size, winSize=win_size)
+    U, V = np.array(UV[:, :, 0]), np.array(UV[:, :, 1])
+    pts, uv = Listed_u_v(U, V, stepSize=step_size, winSize=win_size)
+    rows, cols = im1.shape
+    # Find specific u, v that's giving the minimum error
+    min_error = np.square(np.abs(im2 - im1)).mean()
+    res_u, res_v = 0, 0
+    for u, v in uv:
+        cv2_warp_matrix = np.float32([[1, 0, u], [0, 1, v]])
+        cv2_warping_res = cv2.warpAffine(im1, cv2_warp_matrix, (cols, rows))
+        error = np.square(np.abs(im2 - cv2_warping_res)).mean()
+        if error < min_error:
+            min_error = error
+            res_u, res_v = u, v
+    # Result as warping matrix
+    warping_mat = np.array([[1, 0, res_u], [0, 1, res_v], [0, 0, 1]])
+    return warping_mat
 
 
 def findRigidLK(im1: np.ndarray, im2: np.ndarray) -> np.ndarray:
