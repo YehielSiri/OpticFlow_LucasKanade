@@ -328,20 +328,20 @@ def blendDemo():
 def main():
     print("ID:", myID())
 
-    # img_path = 'input/boxMan.jpg'
-    # lkDemo(img_path)
-    # hierarchicalkDemo(img_path)
-    # compareLK(img_path)
+    img_path = 'input/boxMan.jpg'
+    lkDemo(img_path)
+    hierarchicalkDemo(img_path)
+    compareLK(img_path)
 
-    # img_path1 = 'input/pyr_bit.jpg'
-    # findTranslationLKDemo(img_path1)
-    # findRigidLKDemo(img_path1)
-    # findTranslationCorrDemo(img_path1)
-    # findRigidCorrDemo(img_path1)
-    # imageWarpingDemo(img_path1)
+    img_path1 = 'input/pyr_bit.jpg'
+    findTranslationLKDemo(img_path1)
+    findRigidLKDemo(img_path1)
+    findTranslationCorrDemo(img_path1)
+    findRigidCorrDemo(img_path1)
+    imageWarpingDemo(img_path1)
 
-    # pyrGaussianDemo('input/pyr_bit.jpg')
-    # pyrLaplacianDemo('input/pyr_bit.jpg')
+    pyrGaussianDemo('input/pyr_bit.jpg')
+    pyrLaplacianDemo('input/pyr_bit.jpg')
     blendDemo()
 
 
