@@ -367,11 +367,21 @@ def findRigidLK(im1: np.ndarray, im2: np.ndarray) -> np.ndarray:
 
 def findTranslationCorr(im1: np.ndarray, im2: np.ndarray) -> np.ndarray:
     """
+    I have learned from:
+    https://stackoverflow.com/questions/58174390/how-to-detect-image-translation-with-only-numpy-and-pil
     :param im1: input image 1 in grayscale format.
     :param im2: image 1 after Translation.
     :return: Translation matrix by correlation.
     """
-    pass
+    y, x, max_point_value = maxCorrelationPoint(im1, im2)
+    # Calculate maximum image size for im1 and im2
+    rows, cols = max(im1.shape[0], im2.shape[0]), max(im1.shape[1], im2.shape[1])
+    # Calculate the distance from the maximum error point to the midpoint
+    y_distance = rows // 2 - y
+    x_distance = cols // 2 - x
+    # Result as warping matrix
+    warping_mat = np.array([[1, 0, x_distance], [0, 1, y_distance], [0, 0, 1]])
+    return warping_mat
 
 
 def findRigidCorr(im1: np.ndarray, im2: np.ndarray) -> np.ndarray:
