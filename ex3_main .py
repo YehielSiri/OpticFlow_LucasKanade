@@ -74,7 +74,7 @@ def hierarchicalkDemo(img_path):
     # calc hierarchical LK output
     UV = opticalFlowPyrLK(img_1.astype(float), img_2.astype(float), 6, stepSize=STEP_SIZE, winSize=WIN_SIZE)
     U, V = np.array(UV[:, :, 0]), np.array(UV[:, :, 1])
-    pts, uv = ListedUV(U, V, stepSize=STEP_SIZE, winSize=WIN_SIZE)
+    pts, uv = Listed_u_v(U, V, stepSize=STEP_SIZE, winSize=WIN_SIZE)
 
     # Print results
     et = time.time()
@@ -110,7 +110,7 @@ def compareLK(img_path):
     # calc hierarchical LK output
     UV = opticalFlowPyrLK(img_1.astype(float), img_2.astype(float), 6, stepSize=STEP_SIZE, winSize=WIN_SIZE)
     U, V = np.array(UV[:, :, 0]), np.array(UV[:, :, 1])
-    ptsi, uvi = ListedUV(U, V, stepSize=STEP_SIZE, winSize=WIN_SIZE)
+    ptsi, uvi = Listed_u_v(U, V, stepSize=STEP_SIZE, winSize=WIN_SIZE)
 
     # Print results
     # Plot both LK and hierarchical LK Output
@@ -222,7 +222,7 @@ def main():
     img_path = 'input/boxMan.jpg'
     lkDemo(img_path)
     hierarchicalkDemo(img_path)
-    # compareLK(img_path)
+    compareLK(img_path)
 
     # imageWarpingDemo(img_path)
 

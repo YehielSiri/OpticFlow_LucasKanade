@@ -35,6 +35,7 @@ def __gradient(img: np.ndarray):
     I_x = cv2.filter2D(img, -1, GRADIENT)
     I_y = cv2.filter2D(img, -1, GRADIENT.T)
     return I_x, I_y
+
 def is_window_valid(eigen_value: np.ndarray) -> bool:
     """
     Checking if the eigenvalues is valid.
@@ -44,6 +45,7 @@ def is_window_valid(eigen_value: np.ndarray) -> bool:
     if lamda2 <= 1 or lamda1 / lamda2 >= 100:
         return False
     return True
+
 def __eigenvalues_checking(At_mult_A: np.ndarray) -> bool:
     """
     1. Get the At_mult_A - a squred matrix.
@@ -53,6 +55,7 @@ def __eigenvalues_checking(At_mult_A: np.ndarray) -> bool:
     """
     eigen_values = np.linalg.eigvals(At_mult_A)
     return is_window_valid(eigen_values)
+
 def __blur_image(in_image: np.ndarray, k_size: int) -> np.ndarray:
     """
     Blur an image using a Gaussian kernel using OpenCV built-in functions
@@ -70,6 +73,7 @@ def __blur_image(in_image: np.ndarray, k_size: int) -> np.ndarray:
     kernel2D = kernel1D @ kernel1D.transpose()
 
     return cv2.filter2D(in_image, -1, kernel2D, borderType = cv2.BORDER_REPLICATE)
+
 def __gauss_expand(img: np.ndarray, target_shape: np.shape):
     height, width = img.shape[0] * 2, img.shape[1] * 2
     gaus_expended_prev_level = np.zeros(target_shape)
@@ -78,51 +82,17 @@ def __gauss_expand(img: np.ndarray, target_shape: np.shape):
             gaus_expended_prev_level[j, i] = img[j // 2][i // 2]
     gaus_expended_prev_level = np.clip(__blur_image(gaus_expended_prev_level, 5) * 4, 0, 1)
     return gaus_expended_prev_level
-# def __optical_Flow(im1: np.ndarray, im2: np.ndarray, step_size: int, win_size: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-#     """
-#         This method identical to 'opticalFlow' above but adapted to 'opticalFlowPyrLK'
-#     """
-#     img1, img2 = im1, im2
-#     if len(im1.shape) == 3:
-#         img1 = cv2.cvtColor(im1, cv2.COLOR_RGB2GRAY)
-#     if len(im2.shape) == 3:
-#         img2 = cv2.cvtColor(im2, cv2.COLOR_RGB2GRAY)
-#     I_x, I_y = __gradient(img1)
-#     I_t = np.subtract(img1, img2)
-#     height, width = img2.shape
-#     half_win_size, num_of_win_pixels = win_size // 2, win_size ** 2
-#     u_v_list, y_x_list = [], []
-#     u = np.zeros(img1.shape)
-#     v = np.zeros(img1.shape)
-#     for i in range(int(max(step_size, win_size) / 2), height - int(max(step_size, win_size) / 2), step_size):
-#         for j in range(int(max(step_size, win_size) / 2), width - int(max(step_size, win_size) / 2), step_size):
-#             x_win = I_x[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
-#             y_win = I_y[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
-#             A = np.hstack((x_win.reshape(num_of_win_pixels, 1), y_win.reshape(num_of_win_pixels, 1)))
-#             y_x_list.append((j, i))
-#             At_mult_A = np.dot(np.transpose(A), A)
-#             #   * Eigenvalues checking
-#             if not __eigenvalues_checking(At_mult_A):
-#             # if not __acceptable_eigenvalues(A):
-#                 u_v_list.append((0, 0))
-#                 continue
-#             t_win = I_t[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
-#             b = (-1) * t_win.reshape(num_of_win_pixels, 1)
-#             u_v = np.dot(np.linalg.pinv(A), b)
-#             u_v_list.append(u_v)
-#             u[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1] += u_v[0]
-#             v[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1] += u_v[1]
-#     return np.array(y_x_list).reshape(-1, 2), np.array(u_v_list).reshape(-1, 2), u, v
 
 def __optical_Flow(im1: np.ndarray, im2: np.ndarray, step_size: int,
                 win_size: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
+    An auxilarity function to both, opticalFlow() & opticalFlowPyrLK()
     Given two images, returns the Translation from im1 to im2
     :param im1: Image 1
     :param im2: Image 2
     :param step_size: The image sample size
     :param win_size: The optical flow window size (odd number)
-    :return: Original points [[x,y]...], [[dU,dV]...] for each points
+    :return: Original points [[x,y]...], [[dU,dV]...] for each points, [[dU]...] for each points, [[dV]...] for each points
     """
     # Generate a gray-scale copy
     img1, img2 = im1, im2
@@ -195,53 +165,6 @@ def opticalFlow(im1: np.ndarray, im2: np.ndarray, step_size=10,
     :param win_size: The optical flow window size (odd number)
     :return: Original points [[x,y]...], [[dU,dV]...] for each points
     """
-    # # Generate a gray-scale copy
-    # img1, img2 = im1, im2
-    # if len(im1.shape) == 3:
-    #     img1 = cv2.cvtColor(im1, cv2.COLOR_RGB2GRAY)
-    # if len(im2.shape) == 3:
-    #     img2 = cv2.cvtColor(im2, cv2.COLOR_RGB2GRAY)
-    
-    # # Optimize LK value by the Iterative Algorithm
-    # #   1. Calculate x, y gradiante
-    # I_x, I_y = __gradient(img1)
-    # #   2. Calculate temporal gradient
-    # I_t = np.subtract(img1, img2)
-    
-    # height, width = img2.shape
-    # half_window_size = win_size // 2
-    # window_pixels_num = win_size ** 2
-    # u_v_list, y_x_list = [], []
-
-    # start = int(max(step_size, win_size) / 2)
-    # max_iterations_rows = height - int(max(step_size, win_size) / 2)
-    # max_iterations_cols = width - int(max(step_size, win_size) / 2)
-    # for i in range(start ,max_iterations_rows ,step_size):
-    #     for j in range(start, max_iterations_cols, step_size):
-    #         """
-    #         For solving the:               # T   #   -1  # T  #
-    #                             u         ###   ###     ###   ###
-    #                             v   =   (#   # #   #)  #   #  ###
-    #             to every pixel.
-    #         """
-    #         #   3. Extract local windows
-    #         x_window = I_x[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
-    #         y_window = I_y[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
-    #         t_window = I_t[i - half_window_size: i + half_window_size + 1, j - half_window_size: j + half_window_size + 1]
-    #         b = (-1) * t_window.reshape(window_pixels_num, 1)
-    #         #   4. Compute A matrix of local windows
-    #         A = np.hstack((x_window.reshape(window_pixels_num, 1), y_window.reshape(window_pixels_num, 1)))
-    #         At_mult_A = np.dot(np.transpose(A), A)
-    #         #   * Eigenvalues checking
-    #         if not __eigenvalues_checking(At_mult_A):
-    #             continue
-    #         #   5. Solve the formula for the local windows to estimate optical flow (u, v)
-    #         At_mult_b = np.dot(np.transpose(A), b)
-    #         u_v = np.linalg.inv(At_mult_A) @ At_mult_b
-    #         #   6. Update U(x, y) and V(x, y) with the estimated optical flow (u, v)
-    #         y_x_list.append((j, i))
-    #         u_v_list.append(u_v)
-    # return np.array(y_x_list).reshape(-1, 2), np.array(u_v_list).reshape(-1, 2)
     img1, img2 = im1, im2
     u, v = np.zeros(img1.shape), np.zeros(img1.shape)
 
@@ -267,7 +190,7 @@ def opticalFlowPyrLK(img1: np.ndarray, img2: np.ndarray, k: int,
     v = np.zeros(gaus_pyr1[k - 1].shape)
     for i in range(k - 1, -1, -1):
         # warp image 1 towards image 2 using u, v (first iteration insignificant since u = v = 0)
-        warped = warpUV(gaus_pyr1[i], u, v)
+        warped = warp_u_v(gaus_pyr1[i], u, v)
         # calc winSize, stepSize for the current lvl
         win_size = int(winSize / (i + 1)) if int(winSize / (i + 1)) % 2 == 1 else int(winSize / (i + 1)) + 1
         step_size = int(stepSize / (i + 1)) if int(stepSize / (i + 1)) % 2 == 1 else int(stepSize / (i + 1)) + 1
@@ -280,7 +203,7 @@ def opticalFlowPyrLK(img1: np.ndarray, img2: np.ndarray, k: int,
         d_u = np.where(abs(d_u - 0) < 5, d_u, 0)
         d_v = np.where(abs(d_v - 0) < 5, d_v, 0)
         # merge current d_u, d_v with total u, v
-        d_u, v = mergeUV(u, v, d_u * 2, d_v * 2)
+        d_u, v = merge_u_v(u, v, d_u * 2, d_v * 2)
         # expand u, v dimension to the next level (except last iteration [i=0] which it the original shape)
         if i != 0:
             u = __gauss_expand(u, gaus_pyr1[i - 1].shape) * 4
@@ -294,57 +217,15 @@ def opticalFlowPyrLK(img1: np.ndarray, img2: np.ndarray, k: int,
 # ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   Auxolarity functions   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^
 def __optical_Flow_u_v(im1: np.ndarray, im2: np.ndarray, step_size=10, win_size=5) -> tuple[np.ndarray, np.ndarray]:
     """
-        This method identical to 'opticalFlow' above but adapted to 'opticalFlowPyrLK'
+        An auxilarity function of 'opticalFlowPyrLK()' which return only the u & v for each pixel.
     """
     img1, img2 = im1, im2
     u, v = np.zeros(img1.shape), np.zeros(img1.shape)
 
     y_x_list, u_v_list, u, v = __optical_Flow(img1.astype(np.float32), img2.astype(np.float32), step_size, win_size)
     return u, v
-# def __optical_Flow(im1: np.ndarray, im2: np.ndarray, step_size=10, win_size=5) -> tuple[np.ndarray, np.ndarray]:
-#     """
-#         This method identical to 'opticalFlow' above but adapted to 'opticalFlowPyrLK'
-#     """
-#     img1, img2 = im1, im2
-#     if len(im1.shape) == 3:
-#         img1 = cv2.cvtColor(im1, cv2.COLOR_RGB2GRAY)
-#     if len(im2.shape) == 3:
-#         img2 = cv2.cvtColor(im2, cv2.COLOR_RGB2GRAY)
-#     I_x, I_y = __gradient(img1)
-#     I_t = np.subtract(img1, img2)
-#     height, width = img2.shape
-#     half_win_size, num_of_win_pixels = win_size // 2, win_size ** 2
-#     u_v_list, y_x_list = [], []
-#     u = np.zeros(img1.shape)
-#     v = np.zeros(img1.shape)
-#     for i in range(int(max(step_size, win_size) / 2), height - int(max(step_size, win_size) / 2), step_size):
-#         for j in range(int(max(step_size, win_size) / 2), width - int(max(step_size, win_size) / 2), step_size):
-#             x_win = I_x[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
-#             y_win = I_y[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
-#             A = np.hstack((x_win.reshape(num_of_win_pixels, 1), y_win.reshape(num_of_win_pixels, 1)))
-#             y_x_list.append((j, i))
-#             At_mult_A = np.dot(np.transpose(A), A)
-#             #   * Eigenvalues checking
-#             if not __eigenvalues_checking(At_mult_A):
-#             # if not __acceptable_eigenvalues(A):
-#                 u_v_list.append((0, 0))
-#                 continue
-#             t_win = I_t[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1]
-#             b = (-1) * t_win.reshape(num_of_win_pixels, 1)
-#             u_v = np.dot(np.linalg.pinv(A), b)
-#             u_v_list.append(u_v)
-#             u[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1] += u_v[0]
-#             v[i - half_win_size: i + half_win_size + 1, j - half_win_size: j + half_win_size + 1] += u_v[1]
-#     return u, v
-MIN_LAMDA = 1
-MAX_LAMDA_RATIO = 25
-def __acceptable_eigenvalues(A: np.ndarray) -> bool:
-    squared_matrix = np.dot(np.transpose(A), A)
-    lamda1, lamda2 = np.sort(np.linalg.eigvals(squared_matrix))
-    if lamda1 > MIN_LAMDA and lamda2 > lamda1 and (lamda2 / lamda1) < MAX_LAMDA_RATIO:
-        return True
-    return False
-def ListedUV(d_u: np.ndarray, d_v: np.ndarray, stepSize: int, winSize: int):
+
+def Listed_u_v(d_u: np.ndarray, d_v: np.ndarray, stepSize: int, winSize: int):
     u_v_list, y_x_list = [], []
     height, width = d_u.shape
     win_iterator = int(max(stepSize, winSize) / 2)
@@ -355,7 +236,8 @@ def ListedUV(d_u: np.ndarray, d_v: np.ndarray, stepSize: int, winSize: int):
                 y_x_list.append((j, i))
                 u_v_list.append((int(d_u[i][j]), int(d_v[i][j])))
     return np.array(y_x_list).reshape(-1, 2), np.array(u_v_list).reshape(-1, 2)
-def mergeUV(u: np.ndarray, v: np.ndarray, d_u: np.ndarray, d_v: np.ndarray):
+
+def merge_u_v(u: np.ndarray, v: np.ndarray, d_u: np.ndarray, d_v: np.ndarray):
     for y in range(u.shape[1]):
         for x in range(u.shape[0]):
             move_u, move_v = int(u[x][y]), int(v[x][y])
@@ -366,7 +248,8 @@ def mergeUV(u: np.ndarray, v: np.ndarray, d_u: np.ndarray, d_v: np.ndarray):
                 v[x][y] += d_v[x + move_u][y + move_v]
                 d_v[x + move_u][y + move_v] = 0
     return u, v
-def warpUV(image: np.ndarray, u: np.ndarray, v: np.ndarray):
+
+def warp_u_v(image: np.ndarray, u: np.ndarray, v: np.ndarray):
     result = np.zeros(image.shape) - 1
     for y in range(image.shape[1] - 2):
         for x in range(image.shape[0] - 2):
@@ -376,6 +259,7 @@ def warpUV(image: np.ndarray, u: np.ndarray, v: np.ndarray):
     mask = np.array([[1 if result[j][i] == -1 else 0 for i in range(image.shape[1])] for j in range(image.shape[0])])
     interpolated = cv2.inpaint(cv2.convertScaleAbs(result), cv2.convertScaleAbs(mask), 1, cv2.INPAINT_TELEA)
     return interpolated
+
 def to_shape(a, shape):
     y_, x_ = shape
     y, x = a.shape
