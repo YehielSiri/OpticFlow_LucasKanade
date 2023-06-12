@@ -299,6 +299,21 @@ def maxCorrelationPoint(im1: np.ndarray, im2: np.ndarray):
     y, x = np.unravel_index(max_point_value, corr.shape)
     return y, x, np.max(corr)
 
+def findRotation(im1: np.ndarray, im2: np.ndarray):
+    rows, cols = im1.shape
+    # Find the angle with the highest correlation point
+    max_error, theta_res = 0, 0
+    for i in range(0, 360):
+        theta = i * 0.0174532925  # degree to radian
+        rotate_matrix = np.float32([[np.cos(theta), -np.sin(theta), 0],
+                                    [np.sin(theta), np.cos(theta), 0]])
+        rotated = cv2.warpAffine(im1, rotate_matrix, (rows, cols))
+        y, x, error = maxCorrelationPoint(rotated, im2)
+        if error > max_error:
+            max_error = error
+            theta_res = theta
+    return theta_res
+
 # ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^
 
 
