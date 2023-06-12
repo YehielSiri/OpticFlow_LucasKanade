@@ -416,7 +416,20 @@ def warpImages(im1: np.ndarray, im2: np.ndarray, T: np.ndarray) -> np.ndarray:
     :return: warp image 2 according to T and display both image1
     and the wrapped version of the image2 in the same figure.
     """
-    pass
+    result = np.zeros(im1.shape)
+    for i in range(0, result.shape[0]):
+        for j in range(0, result.shape[1]):
+            """
+            Usually we use inverse matrix of T which is T^1 (using np.linalg.inv(T))
+            That, in condition of the transform which has an inverse!
+            But this time we want to perform warping backwards so we use (T^1)^1 which is T
+            [since p2=(T^1)*p1 we get T*p2=T*(T^1)*p1 = T*p2=p1]
+            """
+            new_coordinates = T.dot(np.array([j, i, 1]))
+            new_j, new_i = int(new_coordinates[0]), int(new_coordinates[1])
+            if 0 <= new_i < im2.shape[0] and 0 <= new_j < im2.shape[1]:
+                result[i, j] = im2[new_i, new_j]
+    return result
 
 
 # ---------------------------------------------------------------------------
