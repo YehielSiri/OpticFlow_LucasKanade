@@ -159,6 +159,8 @@ def findTranslationLKDemo(img_path):
     ax[0].imshow(orig_img, cmap='gray')
     ax[1].imshow(warped_img, cmap='gray')
     ax[2].imshow(warped_using_res, cmap='gray')
+    # plt.imshow(orig_img)
+    # plt.imshow(warped_img)
     plt.show()
     # print(result)
 
@@ -182,7 +184,9 @@ def findRigidLKDemo(img_path):
     ax[0].imshow(orig_img, cmap='gray')
     ax[1].imshow(warped_img, cmap='gray')
     ax[2].imshow(warped_using_res, cmap='gray')
-    plt.show()
+    # plt.imshow(orig_img)
+    # plt.imshow(warped_img)
+    # plt.show()
     # print(result)
 
 
@@ -206,6 +210,8 @@ def findTranslationCorrDemo(img_path):
     ax[0].imshow(orig_img, cmap='gray')
     ax[1].imshow(warped_img, cmap='gray')
     ax[2].imshow(warped_using_res, cmap='gray')
+    # plt.imshow(orig_img)
+    # plt.imshow(warped_img)
     plt.show()
     # print(result)
 
@@ -230,6 +236,8 @@ def findRigidCorrDemo(img_path):
     ax[0].imshow(orig_img, cmap='gray')
     ax[1].imshow(warped_img, cmap='gray')
     ax[2].imshow(warped_using_res, cmap='gray')
+    # plt.imshow(orig_img)
+    # plt.imshow(warped_img)
     plt.show()
     # print(result)
 
@@ -328,21 +336,21 @@ def blendDemo():
 def main():
     print("ID:", myID())
 
-    img_path = 'input/boxMan.jpg'
-    lkDemo(img_path)
-    hierarchicalkDemo(img_path)
-    compareLK(img_path)
+    # img_path = 'input/boxMan.jpg'
+    # lkDemo(img_path)
+    # hierarchicalkDemo(img_path)
+    # compareLK(img_path)
 
     img_path1 = 'input/pyr_bit.jpg'
-    findTranslationLKDemo(img_path1)
-    findRigidLKDemo(img_path1)
-    findTranslationCorrDemo(img_path1)
+    # findTranslationLKDemo(img_path1)
+    # findRigidLKDemo(img_path1)
+    # findTranslationCorrDemo(img_path1)
     findRigidCorrDemo(img_path1)
-    imageWarpingDemo(img_path1)
+    # imageWarpingDemo(img_path1)
 
-    pyrGaussianDemo('input/pyr_bit.jpg')
-    pyrLaplacianDemo('input/pyr_bit.jpg')
-    blendDemo()
+    # pyrGaussianDemo('input/pyr_bit.jpg')
+    # pyrLaplacianDemo('input/pyr_bit.jpg')
+    # blendDemo()
 
 
 if __name__ == '__main__':
